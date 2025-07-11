@@ -557,6 +557,7 @@ GameObject:
   - component: {fileID: 515926589}
   - component: {fileID: 515926588}
   - component: {fileID: 515926590}
+  - component: {fileID: 515926591}
   m_Layer: 0
   m_Name: Queen
   m_TagString: Player
@@ -673,7 +674,7 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1.5, y: 2.5}
+    oldSize: {x: 1.5, y: 2.4375}
     newSize: {x: 1.5, y: 2.5}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -723,14 +724,38 @@ MonoBehaviour:
   moveSpeed: 5
   maxChargeTime: 1.2
   minJumpForce: 6
-  maxJumpForce: 26
-  diagonalJumpAngle: 40
+  maxJumpForce: 30
+  diagonalJumpAngle: 20
   straightUpExtraForce: 1.2
-  jumpSpeedMultiplier: 1.4
+  jumpSpeedMultiplier: 1.8
+  bounceForceMultiplier: 0.5
+  bounceThresholdSpeed: 4
   groundLayer:
     serializedVersion: 2
     m_Bits: 64
   groundCheck: {fileID: 1446138173}
+--- !u!95 &515926591
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 515926585}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 2c4069f13885fb745ab1b11a0c04b7d3, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &1446138172
 GameObject:
   m_ObjectHideFlags: 0

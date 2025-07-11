@@ -14,6 +14,11 @@ public class QueenController : MonoBehaviour
     [SerializeField] private float straightUpExtraForce = 1.2f; // Nhảy thẳng vẫn cao
     [SerializeField] private float jumpSpeedMultiplier = 1.4f;  // Tăng lực tổng thể
 
+    [Header("Bounce Settings")]
+    [SerializeField] private float bounceForceMultiplier = 0.5f; // hệ số phản lực khi va chạm
+    [SerializeField] private float bounceThresholdSpeed = 4f;    // tốc độ đủ mạnh mới bật lại
+
+
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private Transform groundCheck;
 
@@ -25,9 +30,11 @@ public class QueenController : MonoBehaviour
 
     private InputAction moveAction;
     private InputAction jumpAction;
-
+    private Animator animator;
     private void Awake()
     {
+        animator = GetComponent<Animator>();
+        rb = GetComponent<Rigidbody2D>();
         moveAction = new InputAction(type: InputActionType.Value);
         moveAction.AddCompositeBinding("1DAxis")
             .With("Negative", "<Keyboard>/a")
@@ -54,7 +61,19 @@ public class QueenController : MonoBehaviour
 
     private void Start()
     {
-        rb = GetComponent<Rigidbody2D>();
+
+
+        rb.gravityScale = 2.5f;  // tăng tốc độ rơi
+        rb.linearDamping = 0f;          // đảm bảo không bị "bay chậm"
+
+    }
+
+    private void updateAnimation()
+    {
+        bool isRunning = Mathf.Abs(rb.linearVelocity.x) > 0.1f;
+        bool isJumping = !isGrounded;
+        animator.SetBool("isRunning", isRunning);
+        animator.SetBool("isJumping", isJumping);
     }
 
     private void OnJump(InputAction.CallbackContext context)
@@ -77,29 +96,46 @@ public class QueenController : MonoBehaviour
             rb.bodyType = RigidbodyType2D.Dynamic;
 
             float chargeRatio = Mathf.Clamp01(chargeTime / maxChargeTime);
-            float baseForce = Mathf.Lerp(minJumpForce, maxJumpForce, chargeRatio);
+            float power = Mathf.Lerp(minJumpForce, maxJumpForce, chargeRatio); // Lực tổng thể
 
             Vector2 force;
 
+            //if (jumpDirection == 0)
+            //{
+            //    // Nhảy thẳng đứng (Space + không bấm A/D)
+            //    float yForce = power * straightUpExtraForce * jumpSpeedMultiplier;
+            //    force = new Vector2(0f, yForce);
+            //}
             if (jumpDirection == 0)
             {
-                // Nhảy thẳng: tăng chiều cao
-                float yForce = baseForce * straightUpExtraForce * jumpSpeedMultiplier;
+                // Nhảy thẳng đứng (Space + không bấm A/D)
+                float yForce = power * jumpSpeedMultiplier; // giảm lực để không nhảy quá cao
                 force = new Vector2(0f, yForce);
             }
+
             else
             {
-                // Nhảy nghiêng: ưu tiên khoảng cách
-                float angleRad = diagonalJumpAngle * Mathf.Deg2Rad;
-                float xForce = Mathf.Cos(angleRad) * baseForce * jumpSpeedMultiplier * 1.2f * jumpDirection; // nhân thêm 1.2f
-                float yForce = Mathf.Sin(angleRad) * baseForce * jumpSpeedMultiplier;
+                // Nhảy nghiêng: Ưu tiên bay xa → góc thấp nếu lực mạnh
+                float maxAngle = 38f;
+                float minAngle = 20f;
+                float angleDeg = Mathf.Lerp(maxAngle, minAngle, Mathf.Sqrt(chargeRatio));
+
+                float angleRad = angleDeg * Mathf.Deg2Rad;
+                float speed = power * jumpSpeedMultiplier * 1.3f;
+
+                float xForce = Mathf.Cos(angleRad) * speed * jumpDirection;
+                float yForce = Mathf.Sin(angleRad) * speed;
+
 
                 force = new Vector2(xForce, yForce);
             }
 
             rb.linearVelocity = force;
         }
+
+
     }
+
 
 
     private void HandleMovement()
@@ -126,5 +162,27 @@ public class QueenController : MonoBehaviour
         }
 
         HandleMovement();
+        updateAnimation();
     }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        foreach (ContactPoint2D contact in collision.contacts)
+        {
+            Vector2 normal = contact.normal;
+
+            // Điều kiện bật lại:
+            bool hitWall = Mathf.Abs(normal.x) > 0.5f;      // đụng tường
+            bool hitGroundFromAbove = normal.y > 0.5f;       // đập đầu xuống đất (rơi)
+            bool falling = rb.linearVelocity.y < -0.1f;            // đang rơi
+
+            if ((hitWall || hitGroundFromAbove) && falling)
+            {
+                Vector2 reflected = Vector2.Reflect(rb.linearVelocity, normal);
+                rb.linearVelocity = reflected * 0.5f; // bạn có thể điều chỉnh multiplier (0.5f) tuỳ sức bật
+                break; // chỉ xử lý một va chạm
+            }
+        }
+    }
+
 }
