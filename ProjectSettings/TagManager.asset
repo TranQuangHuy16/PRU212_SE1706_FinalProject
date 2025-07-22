@@ -5,6 +5,7 @@ TagManager:
   serializedVersion: 3
   tags:
   - Ground
+  - Chest
   layers:
   - Default
   - TransparentFX
@@ -51,8 +52,14 @@ TagManager:
   - name: Ground
     uniqueID: 647024125
     locked: 0
+  - name: Item
+    uniqueID: 3628925339
+    locked: 0
   - name: Player
     uniqueID: 1202327265
+    locked: 0
+  - name: UI
+    uniqueID: 3047886371
     locked: 0
   m_RenderingLayers:
   - Default

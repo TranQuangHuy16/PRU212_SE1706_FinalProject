@@ -3,6 +3,10 @@ using UnityEngine.InputSystem;
 
 public class QueenController : MonoBehaviour
 {
+    [Header("Map Boundary")]
+    [SerializeField] private float leftLimit = -10f;
+    [SerializeField] private float rightLimit = 10f;
+
     [Header("Movement Settings")]
     [SerializeField] private float moveSpeed = 5f;
 
@@ -31,10 +35,12 @@ public class QueenController : MonoBehaviour
     private InputAction moveAction;
     private InputAction jumpAction;
     private Animator animator;
+    private GameManager gameManager;
     private void Awake()
     {
         animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody2D>();
+        gameManager = FindAnyObjectByType<GameManager>();
         moveAction = new InputAction(type: InputActionType.Value);
         moveAction.AddCompositeBinding("1DAxis")
             .With("Negative", "<Keyboard>/a")
@@ -115,17 +121,17 @@ public class QueenController : MonoBehaviour
 
             else
             {
-                // Nhảy nghiêng: Ưu tiên bay xa → góc thấp nếu lực mạnh
-                float maxAngle = 38f;
-                float minAngle = 20f;
-                float angleDeg = Mathf.Lerp(maxAngle, minAngle, Mathf.Sqrt(chargeRatio));
+                float maxAngle = diagonalJumpAngle; // ví dụ: 55 độ cho cung cong
+                float minAngle = 25f;               // cho lực mạnh vẫn còn góc cong
+
+                float angleDeg = Mathf.Lerp(maxAngle, minAngle, chargeRatio);
 
                 float angleRad = angleDeg * Mathf.Deg2Rad;
-                float speed = power * jumpSpeedMultiplier * 1.3f;
+
+                float speed = power * jumpSpeedMultiplier;
 
                 float xForce = Mathf.Cos(angleRad) * speed * jumpDirection;
                 float yForce = Mathf.Sin(angleRad) * speed;
-
 
                 force = new Vector2(xForce, yForce);
             }
@@ -153,6 +159,7 @@ public class QueenController : MonoBehaviour
 
     private void Update()
     {
+        if(gameManager.IsGameWin()) return;
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, 0.2f, groundLayer);
 
         if (isCharging)
@@ -170,19 +177,28 @@ public class QueenController : MonoBehaviour
         foreach (ContactPoint2D contact in collision.contacts)
         {
             Vector2 normal = contact.normal;
+            bool isFalling = rb.linearVelocity.y < -bounceThresholdSpeed; // chỉ bật nếu rơi đủ nhanh
+            bool hitWall = Mathf.Abs(normal.x) > 0.7f;    // đụng tường ngang
+            bool hitCeiling = normal.y < -0.7f;           // đập đầu vào trần
 
-            // Điều kiện bật lại:
-            bool hitWall = Mathf.Abs(normal.x) > 0.5f;      // đụng tường
-            bool hitGroundFromAbove = normal.y > 0.5f;       // đập đầu xuống đất (rơi)
-            bool falling = rb.linearVelocity.y < -0.1f;            // đang rơi
-
-            if ((hitWall || hitGroundFromAbove) && falling)
+            // Bật lại nếu va vào tường hoặc trần khi đang rơi
+            if (isFalling && (hitWall || hitCeiling))
             {
                 Vector2 reflected = Vector2.Reflect(rb.linearVelocity, normal);
-                rb.linearVelocity = reflected * 0.5f; // bạn có thể điều chỉnh multiplier (0.5f) tuỳ sức bật
-                break; // chỉ xử lý một va chạm
+                rb.linearVelocity = reflected * bounceForceMultiplier;
+                break;
             }
         }
     }
+
+
+    private void LateUpdate()
+    {
+        // Giới hạn vị trí X không vượt ra khỏi vùng cho phép
+        Vector3 pos = transform.position;
+        pos.x = Mathf.Clamp(pos.x, leftLimit, rightLimit);
+        transform.position = pos;
+    }
+
 
 }
