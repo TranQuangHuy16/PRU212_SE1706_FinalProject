@@ -36,9 +36,12 @@ public class QueenController : MonoBehaviour
     private InputAction jumpAction;
     private Animator animator;
     private GameManager gameManager;
+    private AudioManager audioManager;
+
     private void Awake()
     {
         animator = GetComponent<Animator>();
+        audioManager = FindAnyObjectByType<AudioManager>();
         rb = GetComponent<Rigidbody2D>();
         gameManager = FindAnyObjectByType<GameManager>();
         moveAction = new InputAction(type: InputActionType.Value);
@@ -72,6 +75,12 @@ public class QueenController : MonoBehaviour
         rb.gravityScale = 2.5f;  // tăng tốc độ rơi
         rb.linearDamping = 0f;          // đảm bảo không bị "bay chậm"
 
+        if (PlayerPrefs.GetInt("HasSaved", 0) == 1)
+        {
+            float x = PlayerPrefs.GetFloat("PlayerX");
+            float y = PlayerPrefs.GetFloat("PlayerY");
+            transform.position = new Vector2(x, y);
+        }
     }
 
     private void updateAnimation()
@@ -137,6 +146,8 @@ public class QueenController : MonoBehaviour
             }
 
             rb.linearVelocity = force;
+
+            audioManager.PlaySoundJump();
         }
 
 
@@ -155,11 +166,13 @@ public class QueenController : MonoBehaviour
             transform.localScale = new Vector3(1, 1, 1);
         else if (moveInput < 0)
             transform.localScale = new Vector3(-1, 1, 1);
+
+
     }
 
     private void Update()
     {
-        if(gameManager.IsGameWin()) return;
+        if (gameManager.IsGameWin()) return;
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, 0.2f, groundLayer);
 
         if (isCharging)
