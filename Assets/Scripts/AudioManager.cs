@@ -7,6 +7,7 @@ public class AudioManager : MonoBehaviour
 
     [SerializeField] private AudioClip backgroundClip;
     [SerializeField] private AudioClip jumpClip;
+    [SerializeField] private AudioClip coinClip;
     void Start()
     {
         PlayBackGroundMusic();
@@ -28,5 +29,11 @@ public class AudioManager : MonoBehaviour
     {
         effectAudioSource.PlayOneShot(jumpClip);
     }
+
+    public void PlayCoinSound()
+    {
+        effectAudioSource.PlayOneShot(coinClip);
+    }
+        
 
 }

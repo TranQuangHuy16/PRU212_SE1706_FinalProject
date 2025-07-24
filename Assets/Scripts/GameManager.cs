@@ -14,9 +14,15 @@ public class GameManager : MonoBehaviour
     public Transform player;
     void Start()
     {
+        if (PlayerPrefs.GetInt("HasSaved", 0) == 1)
+        {
+            score = PlayerPrefs.GetInt("Score", 0);
+        }
+
+        UpdateScoreText(); // cập nhật hiển thị
         gameWinUI.SetActive(false);
         pauseGameUI.SetActive(false);
-        Time.timeScale = 1; // đảm bảo không bị dừng nếu từ scene trước quay lại
+        Time.timeScale = 1;
     }
 
     void Update()
@@ -39,10 +45,20 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public void AddScore(int points)
+    {
+        score += points;
+        UpdateScoreText();
+    }
+    public void UpdateScoreText()
+    {
+        scoreText.text = score.ToString();
+    }
+
+
     public void GameWin()
     {
         isGameWin = true;
-        score = 0;
         Time.timeScale = 0;
         gameWinUI.SetActive(true);
     }
@@ -60,6 +76,7 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 1;
         SaveCheckpoint();
         SceneManager.LoadScene("Menu");
+
     }
 
     public void Continue()
@@ -78,6 +95,7 @@ public class GameManager : MonoBehaviour
     {
         PlayerPrefs.SetFloat("PlayerX", player.position.x);
         PlayerPrefs.SetFloat("PlayerY", player.position.y);
+        PlayerPrefs.SetInt("Score", score);
         PlayerPrefs.SetInt("HasSaved", 1);
         PlayerPrefs.Save();
     }

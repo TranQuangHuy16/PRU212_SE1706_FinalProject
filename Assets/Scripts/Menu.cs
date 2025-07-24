@@ -5,7 +5,7 @@ public class Menu : MonoBehaviour
 {
     public void PlayNewGame()
     {
-        PlayerPrefs.DeleteKey("HasSaved");
+        PlayerPrefs.DeleteAll();
         SceneManager.LoadScene("Game");
     }
 
