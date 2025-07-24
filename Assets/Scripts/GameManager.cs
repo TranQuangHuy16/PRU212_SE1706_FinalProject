@@ -8,6 +8,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI scoreText;
     [SerializeField] private GameObject gameWinUI;
     [SerializeField] private GameObject pauseGameUI;
+
     private int score = 0;
     private bool isGameWin = false;
     private bool isPaused = false;
@@ -52,7 +53,8 @@ public class GameManager : MonoBehaviour
     }
     public void UpdateScoreText()
     {
-        scoreText.text = score.ToString();
+        scoreText.text = score.ToString() + "<size=125%> <sprite=0></size>";
+
     }
 
 
